@@ -5,8 +5,6 @@ services:
     image: ual-goblight:latest
     container_name: gob-app
     user: gob
-    ports:
-      - "${GOB_PORT:-3000}:3000"
     environment:
       - RAILS_ENV=development
     env_file:
@@ -17,31 +15,43 @@ services:
     depends_on:
       - ual_zookeeper
     networks:
-      - solr
+      - traefik_default
     tty: true
+    labels:
+      - "traefik.http.routers.gob.rule=Host(`gob-test.library.arizona.edu`)"
+      - "traefik.http.routers.gob.entrypoints=web-secure"
+      - "traefik.http.routers.gob.tls=true"
+      - "traefik.http.routers.gob.service=gob"
+      - "traefik.http.routers.gob.middlewares=auth"
+      - "traefik.http.routers.gob.tls.certresolver=incommon"
+      - "traefik.http.services.gob.loadbalancer.server.port=3000"
+      - "traefik.http.services.gob.loadbalancer.server.scheme=http"
 
   ual_solr:
     image: ual-solr:latest
     container_name: solr1
-    ports:
-      - "${SOLR_PORT:-8983}:8983"
     volumes:
       - solr1_data:/var/solr
       - ./docker/solr/cloud-secure.sh:/home/solr/docker/cloud-secure.sh
       - ./app/solr/conf:/blacklight-core
+      - /home/odeak/uaz/files/solr-data/data/UAL_GeospatialRecords:/UAL_GeospatialRecords
     depends_on:
       - ual_zookeeper
     networks:
-      - solr
+      - traefik_default
     command: bash -c "/home/solr/docker/cloud-secure.sh"
+    labels:
+      - "traefik.http.routers.solr.rule=Host(`solr-test.library.arizona.edu`)"
+      - "traefik.http.routers.solr.entrypoints=web-secure"
+      - "traefik.http.routers.solr.tls=true"
+      - "traefik.http.routers.solr.service=solr"
+      - "traefik.http.routers.solr.tls.certresolver=incommon"
+      - "traefik.http.services.solr.loadbalancer.server.port=8983"
+      - "traefik.http.services.solr.loadbalancer.server.scheme=http"
 
   ual_zookeeper:
     image: "zookeeper:${ZK_VERSION:-latest}"
     container_name: zoo1
-    ports:
-      - "2181:2181"
-      - "2888:2888"
-      - "3888:3888"
     environment:
       - ZOO_MY_ID=1
       - ZOO_SERVERS=server.1=zoo1:2888:3888;2181
@@ -50,10 +60,20 @@ services:
     volumes:
       - zoo1_data:/data
     networks:
-      - solr
+      - traefik_default
+    labels:
+      - "traefik.http.routers.zoo.rule=Host(`zoo-test.library.arizona.edu`)"
+      - "traefik.http.routers.zoo.entrypoints=web-secure"
+      - "traefik.http.routers.zoo.tls=true"
+      - "traefik.http.routers.zoo.service=zoo"
+      - "traefik.http.routers.zoo.middlewares=auth"
+      - "traefik.http.routers.zoo.tls.certresolver=incommon"
+      - "traefik.http.services.zoo.loadbalancer.server.port=2181"
+      - "traefik.http.services.zoo.loadbalancer.server.scheme=http"
 
 networks:
-  solr:
+  traefik_default:
+    external: true
 
 volumes:
   solr1_data:

@@ -22,7 +22,7 @@ ENV SOLR_URL="http://${SOLR_USER}:${SOLR_PASS}@${SOLR_HOST}:${SOLR_PORT}/solr/bl
 # NOTE: host user perms are injected in start-me-up.sh
 ARG USER=gob
 ARG PASS=gobb13
-ARG USER_UID=1000
+ARG USER_UID=1001
 ARG USER_GID=${USER_UID}
 
 # project DRY dirs
