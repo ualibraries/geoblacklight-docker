@@ -36,6 +36,23 @@ services:
       - ual-gob
     command: bash -c "/home/solr/docker/cloud-secure.sh"
 
+  ual_solr2:
+    image: ual-solr:latest
+    container_name: solr2
+    # ports:
+    #   - "8983:8983"
+    volumes:
+      - ./app/UAL_GeospatialRecords:/var/solr
+      - ./app/solr/conf:/blacklight-core
+    depends_on:
+      - ual_zookeeper
+    networks:
+      - ual-gob
+    labels:
+      - "traefik.http.routers.ual_solr.entrypoints=gob-solr"
+      - "traefik.http.routers.ual_solr.rule=Host(`gobapp.localhost`)"
+      - "traefik.enable=true"
+
   ual_zookeeper:
     image: "zookeeper:${ZK_VERSION:-latest}"
     container_name: zoo1
