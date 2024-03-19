@@ -78,8 +78,15 @@ ogm_diff = []
 for ogm_item in ogm_dict_list:
     for solr_item in solr_dict_list:
         if ogm_item['dc_identifier_s'] == solr_item['dc_identifier_s']:
-            diff = deepdiff.DeepDiff(ogm_item, solr_item, 
-                                     ignore_type_in_groups=[(str, list), (str, int)])
+            diff = deepdiff.DeepDiff(ogm_item, solr_item,
+                                     ignore_order=True,
+                                     ignore_type_in_groups=[(str, list), (str, int)],
+                                     exclude_paths=["root['dc_creator_sm']",
+                                                    "root['dct_temporal_sm']",
+                                                    "root['solr_year_i']",
+                                                    "root['_version_']",
+                                                    "root['timestamp']",
+                                                    "root['score']"])
             ogm_diff.append([ogm_item['dc_identifier_s'], diff.to_dict()])
             break
 else:
